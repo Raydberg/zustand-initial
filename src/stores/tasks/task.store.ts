@@ -1,7 +1,9 @@
 import { create, StateCreator } from 'zustand';
 import { Task, TaskStatus } from '../../interfaces/task.interface';
-import { devtools } from 'zustand/middleware';
-
+import { devtools, persist } from 'zustand/middleware';
+import { v4 as uuid } from 'uuid'
+// import { produce } from 'immer';
+import { immer } from 'zustand/middleware/immer';
 
 
 
@@ -13,16 +15,19 @@ interface TaskState {
 
     getTaksByStatus: (status: TaskStatus) => Task[]
 
+    addTask: (title: string, status: TaskStatus) => void
+    totalTask: () => number
+
     setDraggingTaskId: (taskId: string) => void
 
     removeDraggingTaskId: () => void
 
-    changeProgress: (taskId: string, status: TaskStatus) => void
-
+    changeTaskStatus: (taskId: string, status: TaskStatus) => void
+    onTaskDrop: (status: TaskStatus) => void
 }
 
 
-const storeApi: StateCreator<TaskState> = (set, get) => ({
+const storeApi: StateCreator<TaskState, [["zustand/immer", never]]> = (set, get) => ({
     draggingTaskId: undefined,
     tasks: {
         'ABC-1': { id: 'ABC-1', title: "Task 1", status: 'open' },
@@ -34,22 +39,64 @@ const storeApi: StateCreator<TaskState> = (set, get) => ({
         const tasks = get().tasks
         return Object.values(tasks).filter(task => task.status === status)
     },
+    addTask: (title: string, status: TaskStatus) => {
+
+        const newTask = { id: uuid(), title, status }
+        //? Con middleware
+        set(state => {
+            state.tasks[newTask.id] = newTask
+        })
+
+        //    const newTask = {id:uuid(),title:title,status:status}
+        //? Requiere paquete de immer
+        // set(produce((state: TaskState) => (
+        //     state.tasks[newTask.id] = newTask
+        // )))
+        //? Tradicional
+        // set(state => ({
+        //     tasks: {
+        //         ...state.tasks,
+        //         [newTask.id]: newTask
+        //     }
+        // }))
+    },
+    totalTask: () => {
+        return Object.values(get().tasks).length;
+    },
     setDraggingTaskId: (taskId: string) => {
         set({ draggingTaskId: taskId })
     },
     removeDraggingTaskId() {
         set({ draggingTaskId: undefined })
     },
-    changeProgress: (taskId: string, status: TaskStatus) => {
-        set((state)=>({
-            
-        }))
+    changeTaskStatus: (taskId: string, status: TaskStatus) => {
+        const task = { ...get().tasks[taskId], status };
+        set(state => {
+            state.tasks[taskId] = task;
+        })
+        // set((state) => ({
+        //     tasks: {
+        //         ...state.tasks,
+        //         [taskId]: task,
+        //     }
+        // }))
+    },
+    onTaskDrop: (status: TaskStatus) => {
+        const taskId = get().draggingTaskId;
+        if (!taskId) return;
+        get().changeTaskStatus(taskId, status)
+        get().removeDraggingTaskId()
     }
 })
 
 
 export const useTaskStore = create<TaskState>()(
     devtools(
-        storeApi
+        persist(
+            immer(
+                storeApi
+            )
+            , { name: "task-store" }
+        )
     )
 )
