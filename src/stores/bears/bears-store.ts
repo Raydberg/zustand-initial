@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 
 
@@ -13,9 +14,7 @@ interface BearState {
     pandaBear: number
     bears: Bear[]
 
-    computed: {
-        totalBears: number
-    },
+    totalBears: () => number
 
     increaseBlackBear: (by: number) => void
     increasePolarBear: (by: number) => void
@@ -26,26 +25,28 @@ interface BearState {
 }
 
 
-export const useBearStore = create<BearState>()((set, get) => ({
-    blackBears: 10,
-    polarBearn: 5,
-    pandaBear: 1,
-    bears: [{ id: 1, name: "Oso 1" }],
+export const useBearStore = create<BearState>()(
+    persist(
+        (set, get) => ({
+            blackBears: 10,
+            polarBearn: 5,
+            pandaBear: 1,
+            bears: [{ id: 1, name: "Oso 1" }],
 
-    computed: {
-        get totalBears(): number {
-            return get().blackBears + get().polarBearn + get().pandaBear
-        }
-    },
+            totalBears: () => get().blackBears + get().polarBearn + get().pandaBear,
 
-    increaseBlackBear: (by: number) => set((state) => ({ blackBears: state.blackBears + by })),
-    increasePolarBear: (by: number) => set((state) => ({ polarBearn: state.polarBearn + by })),
-    increasePandaBear: (by: number) => set((state) => ({ pandaBear: state.pandaBear + by })),
-    doNothing: () => set(state => ({ bears: [...state.bears] })),
-    // doNothing: () => set(state => ({ bears: [...get().bears] })), //Lo mismo que ...state.bears
-    addBear: () => set(state => ({
-        bears: [...state.bears, { id: state.bears.length + 1, name: `Oso #${state.bears.length + 1}` }]
-    })),
-    clearBear: () => set({ bears: [] }),
+            increaseBlackBear: (by: number) => set((state) => ({ blackBears: state.blackBears + by })),
+            increasePolarBear: (by: number) => set((state) => ({ polarBearn: state.polarBearn + by })),
+            increasePandaBear: (by: number) => set((state) => ({ pandaBear: state.pandaBear + by })),
+            doNothing: () => set(state => ({ bears: [...state.bears] })),
+            // doNothing: () => set(state => ({ bears: [...get().bears] })), //Lo mismo que ...state.bears
+            addBear: () => set(state => ({
+                bears: [...state.bears, { id: state.bears.length + 1, name: `Oso #${state.bears.length + 1}` }]
+            })),
+            clearBear: () => set({ bears: [] }),
 
-}))
+        })
+        , { name: "bears-store" }
+    )
+
+)
