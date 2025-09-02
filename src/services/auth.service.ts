@@ -32,4 +32,13 @@ export class AuthService {
             throw new Error("Unauthorized")
         }
     }
+    static infoPrivate = async (): Promise<unknown> => {
+        try {
+            const { data } = await tesloApi.get("/auth/private")
+            return data;
+        } catch (error) {
+            throw new Error("Hubo un error ");
+
+        }
+    }
 }

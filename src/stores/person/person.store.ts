@@ -2,6 +2,7 @@ import { create, type StateCreator } from "zustand"
 import { devtools, persist } from "zustand/middleware"
 import { firebaseStorage } from "../storages/firebase.storage"
 import { logger } from "../middlewares/logger.middelware"
+import { useWeddingBoundStore } from "../wedding/useWeddingBoundStore"
 
 
 
@@ -26,15 +27,22 @@ const storeAPI: StateCreator<PersonState & Actions, [["zustand/persist", unknown
 
 
 export const usePersonStore = create<PersonState & Actions>()(
-    logger(
-        persist(
-            devtools(
-                storeAPI
-            ),
-            {
-                name: "person-storage",
-                storage: firebaseStorage
-            }
-        )
+    // logger(
+    persist(
+        devtools(
+            storeAPI
+        ),
+        {
+            name: "person-storage",
+            storage: firebaseStorage
+        }
     )
+    // )
 );
+
+usePersonStore.subscribe((nextState, prevState) => {
+    console.log({ nextState, prevState })
+    const { firstName, lastName } = nextState
+    useWeddingBoundStore.getInitialState().setFirstName(firstName)
+    useWeddingBoundStore.getInitialState().setLastName(lastName)
+})
