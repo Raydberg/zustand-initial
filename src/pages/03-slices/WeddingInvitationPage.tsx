@@ -18,6 +18,11 @@ export const WeddingInvitationPage = () => {
   const eventYYYYMMDDD = useWeddingBoundStore(state => state.eventYYYMMMDDD)
   const eventHHMM = useWeddingBoundStore(state => state.eventHHMM)
   console.log(eventHHMM())
+  const setEventDate = useWeddingBoundStore(state => state.setEventDate)
+  const setEventTime = useWeddingBoundStore(state => state.setEventTime)
+  const isConfirmation = useWeddingBoundStore(state => state.isConfirmed)
+  const setIsConfirmed = useWeddingBoundStore(state => state.setIsConfirmed)
+
 
   return (
     <>
@@ -96,7 +101,7 @@ export const WeddingInvitationPage = () => {
                     id="eventDate"
                     // value={date.getDate()}
                     value={eventYYYYMMDDD()}
-                  // onChange={(e)=> set}
+                    onChange={(e) => setEventDate(e.target.value)}
                   />
                 </div>
               </div>
@@ -112,6 +117,7 @@ export const WeddingInvitationPage = () => {
                     name="eventTime"
                     id="eventTime"
                     value={eventHHMM()}
+                    onChange={(e) => setEventTime(e.target.value)}
                   />
                 </div>
               </div>
@@ -128,6 +134,8 @@ export const WeddingInvitationPage = () => {
                     name="isComing"
                     id="radioButton1"
                     className="h-5 w-5"
+                    checked={isConfirmation}
+                    onChange={() => setIsConfirmed(true)}
                   />
                   <label
                     className="pl-3 text-base font-medium text-[#07074D]"
@@ -141,6 +149,8 @@ export const WeddingInvitationPage = () => {
                     name="isComing"
                     id="radioButton2"
                     className="h-5 w-5"
+                    checked={!isConfirmation}
+                    onChange={() => setIsConfirmed(false)}
                   />
                   <label
                     className="pl-3 text-base font-medium text-[#07074D]"
