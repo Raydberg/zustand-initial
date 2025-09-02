@@ -1,10 +1,8 @@
 import { IoAddOutline, IoCheckmarkCircleOutline } from 'react-icons/io5';
 import { Task, TaskStatus } from '../../interfaces/task.interface';
 import { SingleTask } from './SingleTask';
-import { useTaskStore } from '../../stores/tasks/task.store';
 import classnames from 'classnames'
-import { useState } from 'react';
-import Swal from 'sweetalert2'
+import { useTasks } from '../../hooks/useTasks';
 interface Props {
   title: string;
   tasks: Task[]
@@ -13,43 +11,14 @@ interface Props {
 
 
 export const JiraTasks = ({ title, status, tasks }: Props) => {
-  const isDragging = useTaskStore(state => !!state.draggingTaskId)
-  const onTaskDrop = useTaskStore(state => state.onTaskDrop)
-  const [onDragOver, setOnDragOver] = useState(false)
-  const addTask = useTaskStore(state => state.addTask)
-  const handleAddTask = async () => {
-    const { isConfirmed, value } = await Swal.fire({
-      title: "Nueva tarea",
-      input: 'text',
-      inputLabel: 'Nombre de la tarea',
-      inputPlaceholder: 'Ingrese el nombre de la tarea',
-      showCancelButton: true,
-      inputValidator: (value) => {
-        if (!value) {
-          return 'Debe ingresar un nombre para la tarea'
-        }
-      }
-    })
-    if (!isConfirmed) return;
-
-    addTask(value, status)
-  }
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    console.log("handleDragOver", event)
-    setOnDragOver(true)
-  }
-  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    console.log("handleDragLeave", event)
-    setOnDragOver(false)
-  }
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    console.log("handleDrop", event)
-    console.log(status)
-    onTaskDrop(status)
-  }
+  const {
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleAddTask,
+    isDragging,
+    onDragOver
+  } = useTasks({ status })
 
   return (
 
@@ -93,8 +62,6 @@ export const JiraTasks = ({ title, status, tasks }: Props) => {
             <SingleTask key={task.id} task={task} />
           ))
         }
-
-
       </div>
     </div>
   );
